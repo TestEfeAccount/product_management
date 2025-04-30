@@ -14,7 +14,7 @@ class WarehouseSeeder extends Seeder
     public function run(): void
     {
 
-        for ($i = 0; $i < 3; $i++) {
+        for ($i = 1; $i < 10; $i++) {
             Warehouse::create([
                 'name' => 'Warehouse ' . $i,
             ]);

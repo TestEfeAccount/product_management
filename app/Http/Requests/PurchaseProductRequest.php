@@ -26,7 +26,7 @@ class PurchaseProductRequest extends FormRequest
         return [
             'providerId' => 'required|integer|exists:providers,id',
             'products.*.product_id' => 'required|integer|exists:products,id',
-            'products.*.warehouse_id' => 'nullable|integer|exists:warehouses,id',
+            'products.*.warehouse_id' => 'required|integer|exists:warehouses,id',
             'products.*.purchase_price' => 'required|decimal:0,2|min:1',
             'products.*.quantity' => 'required|integer|min:1',
 
