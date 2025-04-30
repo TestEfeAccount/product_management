@@ -32,6 +32,7 @@ class BatchRefundStrategy implements RefundStrategyInterface
             }else {
                 $quantity -= $warehouseProduct->quantity;
                 $this->productService->decreaseQuantity($warehouseProduct, $warehouseProduct->quantity);
+                $this->ledgerService->stockEntry($warehouseProduct->batch_product_id, $warehouseProduct->warehouse_id, $warehouseProduct->quantity, LedgerType::OUT);
             }
         }
     }
