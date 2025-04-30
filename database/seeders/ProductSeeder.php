@@ -17,27 +17,33 @@ class ProductSeeder extends Seeder
         $products = [
             [
                 'name' => 'Example Sneaker 1',
-                'category_id' => 5
+                'category_id' => 5,
+                'price' => 100
             ],
             [
                 'name' => 'Example Sneaker 2',
-                'category_id' => 5
+                'category_id' => 5,
+                'price' => 120
             ],
             [
                 'name' => 'Example Boot 1',
-                'category_id' => 6
+                'category_id' => 6,
+                'price' => 200
             ],
             [
                 'name' => 'Example Boot 2',
-                'category_id' => 6
+                'category_id' => 6,
+                'price' => 200,
             ],
             [
                 'name' => 'Example Laptop 1',
-                'category_id' => 8
+                'category_id' => 8,
+                'price' => 2000
             ],
             [
                 'name' => 'Example Laptop 2',
-                'category_id' => 8
+                'category_id' => 8,
+                'price' => 2500
             ],
 
         ];
