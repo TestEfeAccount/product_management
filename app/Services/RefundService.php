@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Factories\RefundStrategyFactory;
-use App\Interfaces\RefundableInterface;
 use App\Interfaces\RefundServiceInterface;
 use App\Managers\RefundManager;
 use App\Models\BatchProduct;

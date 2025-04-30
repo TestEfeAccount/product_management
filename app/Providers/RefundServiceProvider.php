@@ -10,9 +10,6 @@ use App\Interfaces\LedgerServiceInterface;
 
 class RefundServiceProvider extends ServiceProvider
 {
-    /**
-     * @return void
-     */
     public function register()
     {
         $this->app->singleton(RefundStrategyFactory::class, function ($app) {

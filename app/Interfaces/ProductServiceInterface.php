@@ -9,5 +9,5 @@ interface ProductServiceInterface
 
     public function getProductsInStock();
 
-    public function decreaseQuantity(\App\Models\BatchProduct $batchProduct, int $quantity);
+    public function decreaseQuantity($product, int $quantity);
 }

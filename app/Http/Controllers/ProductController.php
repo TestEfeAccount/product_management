@@ -3,10 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\ProductResource;
-
 use App\Interfaces\ProductServiceInterface;
-
-use App\Services\ProductService;
 
 
 class ProductController extends Controller
@@ -16,6 +13,7 @@ class ProductController extends Controller
     {
 
     }
+
     public function getProducts()
     {
         return ProductResource::collection($this->productService->getProductsInStock());

@@ -62,15 +62,12 @@ class WarehouseService implements WarehouseServiceInterface
 
     public function checkAvailability($productId, $quantity)
     {
-
         return $this->warehouseRepository->checkProductStock($productId, $quantity);
-
     }
 
     public function getProductForOrder($id, $quantity)
     {
         return $this->warehouseRepository->getProductForOrder($id, $quantity);
     }
-
 
 }

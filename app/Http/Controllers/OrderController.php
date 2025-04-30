@@ -7,7 +7,6 @@ use App\DTO\OrderDTO;
 use App\Http\Requests\OrderRequest;
 use App\Http\Responses\ApiResponse;
 use App\Services\OrderService;
-use App\Services\ProductService;
 
 
 class OrderController extends Controller

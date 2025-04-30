@@ -2,7 +2,6 @@
 
 namespace App\Managers;
 
-use App\Interfaces\RefundableInterface;
 use App\Interfaces\RefundStrategyInterface;
 use App\Models\BatchProduct;
 use Illuminate\Support\Collection;

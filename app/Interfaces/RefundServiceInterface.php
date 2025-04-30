@@ -2,9 +2,7 @@
 
 namespace App\Interfaces;
 
-
 use App\Models\BatchProduct;
-use Illuminate\Database\Eloquent\Collection;
 
 interface RefundServiceInterface
 {
