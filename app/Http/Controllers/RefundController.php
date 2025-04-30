@@ -36,7 +36,7 @@ class RefundController extends Controller
             $result = $this->refundService->refund('batch', $batchProduct, $warehouseProducts, $validated['quantity']);
             return ApiResponse::success($result['message'], $result['data']);
         } catch (\Exception $e) {
-            return ApiResponse::error($e->getMessage(),null, $e->getCode());
+            return ApiResponse::error($e->getMessage());
         }
     }
 
