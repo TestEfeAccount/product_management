@@ -6,7 +6,6 @@ use App\Enums\LedgerType;
 use App\Interfaces\BatchServiceInterface;
 use App\Interfaces\ProductServiceInterface;
 use App\Interfaces\WarehouseServiceInterface;
-use App\Models\Client;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Services\LedgerService;
@@ -24,7 +23,7 @@ class OrderRepository
 
     }
 
-    public function createItem($product, $quantity, $order)
+    public function addItemToOrder($product, $quantity, $order)
     {
         /**
          * getting the oldest batch;
@@ -47,4 +46,5 @@ class OrderRepository
     {
         return Order::create(['client_id' => $clientId, 'address' => random_int(10000, 99999)]);
     }
+
 }

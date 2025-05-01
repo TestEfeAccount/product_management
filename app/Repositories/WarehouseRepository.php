@@ -9,15 +9,25 @@ use App\Services\LedgerService;
 class WarehouseRepository
 {
 
+    /**
+     * @param LedgerService $ledgerService
+     */
     public function __construct(protected LedgerService $ledgerService)
     {
     }
 
-    public function addProduct($batchProduct, $batchId, $quantity, $warehouseId)
+    /**
+     * @param $batchProduct
+     * @param $batchId
+     * @param $quantity
+     * @param $warehouseId
+     * @return void
+     */
+    public function addProduct($batchProduct, $quantity, $warehouseId)
     {
         $warehouseProduct = new WarehouseProduct();
         $warehouseProduct->batch_product_id = $batchProduct->id;
-        $warehouseProduct->batch_id = $batchId;
+        $warehouseProduct->batch_id = $batchProduct->batch_id;
         $warehouseProduct->quantity = $quantity;
         $warehouseProduct->product_id = $batchProduct->product_id;
         $warehouseProduct->warehouse_id = $warehouseId;
@@ -25,14 +35,11 @@ class WarehouseRepository
         $this->ledgerService->stockEntry($batchProduct->id, $warehouseId, $quantity, LedgerType::IN);
     }
 
-    public function getProductsForUpdateByBatchAndProductId($batchId, $batchProductId)
-    {
-        return WarehouseProduct::where('batch_product_id', $batchProductId)
-            ->where('batch_id', $batchId)
-            ->lockForUpdate()
-            ->get();
-    }
-
+    /**
+     * @param $productId
+     * @param $quantity
+     * @return bool
+     */
     public function checkProductStock($productId, $quantity)
     {
 
@@ -42,7 +49,12 @@ class WarehouseRepository
 
     }
 
-    public function getProductForOrder($productId, $quantity)
+    /**
+     * @param $productId
+     * @param $quantity
+     * @return WarehouseProduct|null
+     */
+    public function getProductForOrder($productId, $quantity): ?WarehouseProduct
     {
         return WarehouseProduct::orderBy('created_at', 'ASC')
             ->where('quantity', '>=', $quantity)

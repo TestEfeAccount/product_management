@@ -2,8 +2,10 @@
 
 namespace App\Interfaces;
 
+use App\Models\BatchProduct;
+
 interface WarehouseServiceInterface
 {
-    public function allocateProduct(int $batchProductId, int $batchId, int $quantity): void;
+    public function allocateProduct(BatchProduct $batchProduct, int $quantity): void;
     public function getWarehouses();
 }

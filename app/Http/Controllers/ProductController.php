@@ -18,6 +18,4 @@ class ProductController extends Controller
     {
         return ProductResource::collection($this->productService->getProductsInStock());
     }
-
-
 }

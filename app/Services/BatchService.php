@@ -2,37 +2,48 @@
 
 namespace App\Services;
 
-
 use App\DTO\PurchaseBatchDTO;
 use App\Interfaces\BatchServiceInterface;
 use App\Interfaces\WarehouseServiceInterface;
 use App\Models\Batch;
-use App\Models\OrderItem;
-use App\Models\WarehouseProduct;
+use App\Models\BatchProduct;
 use App\Repositories\BatchRepository;
 use App\Trait\BuildMessageTrait;
 use App\Trait\ExecuteInTransaction;
 use Ramsey\Uuid\Uuid;
+use Throwable;
 
 class BatchService implements BatchServiceInterface
 {
     use BuildMessageTrait, ExecuteInTransaction;
 
-    protected BatchRepository $batchRepository;
-
+    /**
+     * @param WarehouseServiceInterface $warehouseService
+     * @param BatchRepository $batchRepository
+     */
     public function __construct(
         protected WarehouseServiceInterface $warehouseService,
-        BatchRepository                     $batchRepository = null
+        protected BatchRepository           $batchRepository,
+        protected BatchProfitCalculator     $batchProfitCalculator
     )
     {
-        $this->batchRepository = $batchRepository ?? new BatchRepository();
     }
 
+    /**
+     * @param int $batchId
+     * @param int $productId
+     * @return BatchProduct|null
+     */
     public function getBatchProductForUpdate(int $batchId, int $productId)
     {
         return $this->batchRepository->getBatchProductForUpdate($batchId, $productId);
     }
 
+    /**
+     * @param PurchaseBatchDTO $purchaseBatchDTO
+     * @return array
+     * @throws Throwable
+     */
     public function purchaseBatch(PurchaseBatchDTO $purchaseBatchDTO): array
     {
         return $this->executeInTransaction(function () use ($purchaseBatchDTO) {
@@ -42,11 +53,14 @@ class BatchService implements BatchServiceInterface
 
             return $this->buildSuccessResponse(
                 $batch->load(['products.baseProduct', 'products.warehouseProducts.warehouse']),
-                'Batch successfully purchased!'
-            );
+                'Batch successfully purchased!');
         });
     }
 
+    /**
+     * @param int $providerId
+     * @return Batch
+     */
     protected function createBatch(int $providerId): Batch
     {
         return $this->batchRepository->createBatch([
@@ -55,6 +69,11 @@ class BatchService implements BatchServiceInterface
         ]);
     }
 
+    /**
+     * @param int $batchId
+     * @param array $products
+     * @return void
+     */
     protected function processBatchProducts(int $batchId, array $products): void
     {
         foreach ($products as $product) {
@@ -65,48 +84,23 @@ class BatchService implements BatchServiceInterface
                 'purchase_price' => $product['purchase_price'],
             ]);
 
-            $this->warehouseService->allocateToWarehouse($batchProduct, $batchId, $product);
+            $this->warehouseService->allocateToWarehouse($batchProduct, $product);
         }
     }
 
-    public function calculateProfitPerBatch()
+    /**
+     * @return array
+     */
+    public function calculateProfitPerBatch(): array
     {
 
         $batches = Batch::with('products.baseProduct')
             ->with('products.warehouseProducts.orderItem')
             ->get();
 
-        $profits = [];
-
+        $batchProfits = [];
         foreach ($batches as $batch) {
-            $revenue = 0;
-            $cost = 0;
-
-
-
-            foreach ($batch->products as $batchProduct) {
-
-                $cost += $batchProduct->purchase_price * $batchProduct->quantity;
-
-                $warehouseProducts = WarehouseProduct::where('batch_product_id', $batchProduct->id)->get();
-
-                foreach ($warehouseProducts as $warehouseProduct) {
-                    $orderItems = OrderItem::where('warehouse_product_id', $warehouseProduct->id)->get();
-                    foreach ($orderItems as $orderItem) {
-                        $revenue += $orderItem->price * $orderItem->quantity;
-                    }
-                }
-
-            }
-
-            $profit = $revenue - $cost;
-
-            $batchProfits[] = [
-                'batch_id' => $batch->id,
-                'revenue' => $revenue,
-                'cost' => $cost,
-                'profit' => $profit,
-            ];
+            $batchProfits[] = $this->batchProfitCalculator->calculateProfitPerBatch($batch);
         }
 
         return $batchProfits;

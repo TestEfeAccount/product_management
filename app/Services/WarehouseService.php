@@ -1,9 +1,9 @@
 <?php
-
 namespace App\Services;
 
 use App\Enums\LedgerType;
 use App\Interfaces\WarehouseServiceInterface;
+use App\Models\BatchProduct;
 use App\Models\Warehouse;
 use App\Models\WarehouseProduct;
 use App\Repositories\WarehouseRepository;
@@ -11,63 +11,90 @@ use Illuminate\Database\Eloquent\Collection;
 
 class WarehouseService implements WarehouseServiceInterface
 {
-
+    /**
+     * @param WarehouseRepository $warehouseRepository
+     */
     public function __construct(protected WarehouseRepository $warehouseRepository)
     {
     }
 
-    public function getProductsForUpdateByBatchAndProductId($batchId, $batchProductId)
-    {
-        return $this->warehouseRepository->getProductsForUpdateByBatchAndProductId($batchId, $batchProductId);
-    }
-
-    public function allocateToWarehouse($batchProduct, int $batchId, array $product): void
+    /**
+     * @param $batchProduct
+     * @param array $product
+     * @return void
+     */
+    public function allocateToWarehouse($batchProduct, array $product): void
     {
         if (!array_key_exists('warehouse_id', $product)) {
-            $this->allocateProduct($batchProduct, $batchId, $product['quantity']);
+            $this->allocateProduct($batchProduct,  $product['quantity']);
         } else {
-            $this->warehouseRepository->addProduct($batchProduct, $batchId, $product['quantity'], $product['warehouse_id']);
+            $this->warehouseRepository->addProduct(
+                $batchProduct,
+                $batchProduct['quantity'],
+                $product['quantity'],
+                $product['warehouse_id']
+            );
         }
     }
 
-    public function allocateProduct($batchProduct, $batchId, $quantity): void
+    /**
+     * @param BatchProduct $batchProduct
+     * @param int $quantity
+     * @return void
+     */
+    public function allocateProduct(BatchProduct $batchProduct, int $quantity): void
     {
         $warehouses = $this->getWarehouses();
-        $warehouseCount = count($warehouses);
-        if ($warehouseCount <= $quantity) {
-            $quantityPerWarehouse = floor($quantity / $warehouseCount);
+        $warehouseCount = $warehouses->count();
 
-            $remainder = $quantity % $warehouseCount;
-            foreach ($warehouses as $index => $warehouse) {
-                $quantity = $quantityPerWarehouse;
-                if ($index < $remainder) {
-                    $quantity++;
-                }
-                $this->warehouseRepository->addProduct($batchProduct, $batchId, $quantity, $warehouse->id);
-            }
-        } else {
-            $index = 0;
-            while ($quantity > 0 && $index < $warehouseCount) {
-                $this->warehouseRepository->addProduct($batchProduct, $batchId, 1, $warehouses[$index]->id);
-                $quantity--;
-                $index++;
-            }
+        if ($warehouseCount > 0 && $quantity > 0) {
+            $this->distributeProductAcrossWarehouses($warehouses, $batchProduct, $quantity);
         }
     }
 
+    /**
+     * @param Collection $warehouses
+     * @param BatchProduct $batchProduct
+     * @param int $quantity
+     * @return void
+     */
+    private function distributeProductAcrossWarehouses(Collection $warehouses, BatchProduct $batchProduct,  int $quantity): void
+    {
+        $warehouseCount = $warehouses->count();
+        $quantityPerWarehouse = floor($quantity / $warehouseCount);
+        $remainder = $quantity % $warehouseCount;
+
+        foreach ($warehouses as $index => $warehouse) {
+            $allocatedQuantity = $quantityPerWarehouse + ($index < $remainder ? 1 : 0);
+            $this->warehouseRepository->addProduct($batchProduct, $allocatedQuantity, $warehouse->id);
+        }
+    }
+
+    /**
+     * @return Collection
+     */
     public function getWarehouses(): Collection
     {
         return Warehouse::all();
     }
 
-    public function checkAvailability($productId, $quantity)
+    /**
+     * @param int $productId
+     * @param int $quantity
+     * @return bool
+     */
+    public function checkAvailability(int $productId, int $quantity): bool
     {
         return $this->warehouseRepository->checkProductStock($productId, $quantity);
     }
 
-    public function getProductForOrder($id, $quantity)
+    /**
+     * @param int $id
+     * @param int $quantity
+     * @return WarehouseProduct|null
+     */
+    public function getProductForOrder(int $id, int $quantity) : ?WarehouseProduct
     {
         return $this->warehouseRepository->getProductForOrder($id, $quantity);
     }
-
 }
